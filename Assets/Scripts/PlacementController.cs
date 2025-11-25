@@ -10,43 +10,26 @@ public class PlacementController : MonoBehaviour
     private ARRaycastManager raycastManager;
     private static List<ARRaycastHit> hits = new List<ARRaycastHit>();
 
-    void Awake()
+    private InputAction touchPositionAction;
+
+    void Start()
     {
         raycastManager = GetComponent<ARRaycastManager>();
+        InputSystem.actions.FindAction("AR/Tap").performed += TapPerformed;
+        touchPositionAction = InputSystem.actions.FindAction("AR/TapPosition");
     }
 
-    void Update()
+    void TapPerformed(InputAction.CallbackContext context)
     {
-        Vector2 screenPosition = Vector2.zero;
-        bool inputFound = false;
+       // 1. Leggiamo la posizione del tocco dall'altra azione (touchPositionAction)
+        Vector2 screenPosition = touchPositionAction.ReadValue<Vector2>();
 
-       
-        // --- Inizio Logica Nuovo Input System ---
-
-        // 2. Controlla il Tocco (per il dispositivo)
-        if (Touchscreen.current != null && Touchscreen.current.primaryTouch.press.wasPressedThisFrame)
+        // 2. Eseguiamo il Raycast AR
+        if (raycastManager.Raycast(screenPosition, hits, TrackableType.PlaneWithinPolygon))
         {
-            screenPosition = Touchscreen.current.primaryTouch.position.ReadValue();
-            inputFound = true;
-        }
-        // 3. Controlla il Mouse (per la simulazione in Editor)
-        else if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
-        {
-            screenPosition = Mouse.current.position.ReadValue();
-            inputFound = true;
-        }
-
-        // --- Fine Logica Nuovo Input System ---
-
-        // Se abbiamo trovato un input valido, lancia il raggio
-        if (inputFound)
-        {
-            if (raycastManager.Raycast(screenPosition, hits, TrackableType.PlaneWithinPolygon))
-            {
-                // Colpito! Instanzia l'oggetto.
-                Pose hitPose = hits[0].pose;
-                Instantiate(objectToPlace, hitPose.position, hitPose.rotation);
-            }
+            // 3. Istanziamo l'oggetto nel punto colpito
+            Pose hitPose = hits[0].pose;
+            Instantiate(objectToPlace, hitPose.position, hitPose.rotation);
         }
     }
 }
