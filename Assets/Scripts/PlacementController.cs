@@ -20,6 +20,7 @@ public class PlacementController : MonoBehaviour
         Vector2 screenPosition = Vector2.zero;
         bool inputFound = false;
 
+       
         // --- Inizio Logica Nuovo Input System ---
 
         // 2. Controlla il Tocco (per il dispositivo)
